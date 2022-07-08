@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { supabase } from './supabase-client'
 import { useToast } from "@chakra-ui/react"
-import wx from './weixin-1.6.0'
 import {
     Box,
     Button,
