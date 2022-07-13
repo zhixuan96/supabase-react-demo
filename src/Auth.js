@@ -15,19 +15,21 @@ import {
 } from '@chakra-ui/react';
 export default function Auth() {
     const [loading, setLoading] = useState(false);
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
+    const [account, setAccount] = useState('');
     const [token, setToken] = useState('');
     const toast = useToast();
-    const handleSignUp = async email => {
+    const handleSignUp = async account => {
         try {
             setLoading(true);
-            const { error } = await supabase.auth.signIn({
-                // provider: 'twilio',
-                phone: phone
-                // password: 'some-password'
-            });
-            if (error) throw error;
+            if (isEmail(account)) {
+                const { error } = await supabase.auth.signIn({
+                    email: account
+                });if(error)throw error;
+            } else {
+                const { error } = await supabase.auth.signIn({
+                    phone: account
+                });if(error)throw error;
+            }
         } catch (error) {
 
         } finally {
@@ -36,15 +38,22 @@ export default function Auth() {
     }
 
 
-    const handleLogin = async email => {
+    const handleLogin = async account => {
         try {
             setLoading(true);
-            const { error } = await supabase.auth.verifyOTP({
-                // provider: 'twilio',
-                phone: phone,
-                token: token,
-            });
-            if (error) throw error;
+            if (isEmail(account)) {
+                const { error } = await supabase.auth.verifyOTP({
+                    email: account,
+                    token: token,
+                    type: 'magiclink'
+                });if(error)throw error;
+            } else {
+                const { error } = await supabase.auth.verifyOTP({
+                    phone: account,
+                    token: token,
+                });if(error)throw error;
+            }
+
             toast({
                 title: 'account created',
                 position: 'top',
@@ -78,15 +87,15 @@ export default function Auth() {
                     </Stack>
                     <Box rounded={'lg'} bg={useColorModeValue('white', 'gray.700')} boxShadow={'lg'} p={8}>
                         <Stack spacing={4}>
-                            <FormControl id="phone">
-                                <FormLabel>Phone number</FormLabel>
-                                <Input value={phone} onChange={e => setPhone(e.target.value)} />
+                            <FormControl id="account">
+                                <FormLabel>account</FormLabel>
+                                <Input value={account} onChange={e => setAccount(e.target.value)} />
                             </FormControl>
                             <Stack spacing={10}>
                                 <Button
                                     onClick={e => {
                                         e.preventDefault();
-                                        handleSignUp(phone);
+                                        handleSignUp(account);
                                     }}
                                     isLoading={loading}
                                     loadingText="Signing in ..."
@@ -108,7 +117,7 @@ export default function Auth() {
                                 <Button
                                     onClick={e => {
                                         e.preventDefault();
-                                        handleLogin(email);
+                                        handleLogin(account);
                                     }}
                                     isLoading={loading}
                                     loadingText="Signing in ..."
@@ -130,4 +139,11 @@ export default function Auth() {
             </Flex>
         </div>
     )
+}
+function isEmail(email) {
+    var regex = /^([0-9A-Za-z\-_\.]+)@([0-9a-z]+\.[a-z]{2,3}(\.[a-z]{2})?)$/g;
+    if (!regex.test(email)) {
+        return false;
+    }
+    return true;
 }
